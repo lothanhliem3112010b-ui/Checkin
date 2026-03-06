@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMC Check-in 8/3</title>
+    <style>
+        body { 
+            margin: 0; padding: 20px; display: flex; flex-direction: column; 
+            align-items: center; background: #fff0f3; font-family: sans-serif; 
+        }
+        /* Chữ EMC trên đầu */
+        .header-emc { 
+            font-size: 3rem; font-weight: 900; color: #ff4d6d; 
+            margin-bottom: 10px; text-shadow: 2px 2px 5px rgba(255, 77, 109, 0.3);
+        }
+        /* Khung hồng bao quanh camera */
+        .camera-wrapper { 
+            width: 350px; height: 350px; border: 15px solid #ff85a2; 
+            border-radius: 20px; overflow: hidden; background: #000; position: relative;
+        }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .controls { margin-top: 20px; display: flex; gap: 15px; }
+        button { 
+            padding: 15px 25px; border: none; border-radius: 50px; 
+            background: #ff4d6d; color: white; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header-emc">EMC</div>
+    <div class="camera-wrapper">
+        <video id="video" autoplay playsinline></video>
+    </div>
+
+    <div class="controls">
+        <button onclick="toggleCam()">🔄 Đổi Cam</button>
+        <button onclick="capture()">📸 Chụp & Lưu</button>
+    </div>
+
+    <canvas id="canvas" width="600" height="600"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        let currentMode = 'user';
+
+        async function initCam(mode) {
+            if (window.stream) window.stream.getTracks().forEach(t => t.stop());
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode }, audio: false });
+                window.stream = stream;
+                video.srcObject = stream;
+            } catch (e) { alert("Vui lòng cấp quyền Camera trong cài đặt trình duyệt!"); }
+        }
+
+        function toggleCam() {
+            currentMode = (currentMode === 'user') ? 'environment' : 'user';
+            initCam(currentMode);
+        }
+
+        function capture() {
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, 600, 600);
+            
+            // Vẽ khung hồng lên ảnh
+            ctx.strokeStyle = "#ff85a2";
+            ctx.lineWidth = 30;
+            ctx.strokeRect(0, 0, 600, 600);
+            
+            // Vẽ chữ EMC 8/3 lên ảnh
+            ctx.fillStyle = "white";
+            ctx.font = "bold 60px Arial";
+            ctx.textAlign = "center";
+            ctx.shadowBlur = 10; ctx.shadowColor = "black";
+            ctx.fillText("EMC 8/3", 300, 550);
+            
+            // Tải ảnh về
+            const link = document.createElement('a');
+            link.download = 'EMC-8-3-Checkin.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        initCam(currentMode);
+    </script>
+</body>
+</html>
